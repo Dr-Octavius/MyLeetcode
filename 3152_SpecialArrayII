@@ -1,0 +1,230 @@
+// Attempt 1: Failed 1 test case
+// Binarysearch Nums (k) using queries (n) + cache -> Ceiling O(nlog(k))
+// type isSpecialCache struct {
+//     from int
+//     to int
+// }
+
+// func isArraySpecial(nums []int, queries [][]int) []bool {
+//     resArr := []bool{}
+//     // captures the biggest isSpecialQuery so far
+//     queryCache := isSpecialCache{
+//         from: len(nums),
+//         to: -99999,
+//     }
+//     for _,query := range queries {
+//         from := query[0]
+//         to := query[1]
+
+//         // base case is always true
+//         if (to - from == 0) {
+//             resArr = append(resArr,true)
+//             continue
+//         }
+
+//         // if a query is special, all subsets of queries are also special
+        
+//         // Case 0a: The current query is within the cache boundary
+//         if (from > queryCache.from) && (to < queryCache.to) {
+//             resArr = append(resArr,true)
+//             continue
+//         }
+
+//         // Case 0b: The current query is entirely outside the cache boundary
+//         if (from > queryCache.to || to < queryCache.from) {
+//             resArr = append(resArr,searchSegment(nums,from,to))
+//             continue
+//         }
+
+//         // slice the to/from of the query depending on where it falls outside the boundary
+//         // Case 1: from is outside the cache boundary
+//         // Adjust the cache boundary to only search for lower portion
+//         if (queryCache.from > from) && (queryCache.to > to) {
+//             to = queryCache.from
+//             tmpRes1 := searchSegment(nums,from,to)
+//             resArr = append(resArr,tmpRes1)
+//             // update the cache if true
+//             if (tmpRes1) {
+//                queryCache.from = from 
+//             }
+//             continue
+//         }
+
+//         // Case 2: to is outside the cache boundary
+//         // Adjust the cache boundary to only search for top portion
+//         if (queryCache.from < from) && (queryCache.to < to) {
+//             from = queryCache.to
+//             tmpRes2 := searchSegment(nums,from,to)
+//             resArr = append(resArr,tmpRes2)
+//             // update the cache if true
+//             if (tmpRes2) {
+//                queryCache.from = from 
+//             }
+//             continue
+//         }
+
+//         // Case 3: cache boundary is within from & to
+//         // Abstract below for loop into 2 sets of from & to
+//         // for the affected splices.
+//         // only add true to result array if both portions are true
+//         tmpRes3 := searchSegment(nums,from,queryCache.to)
+//         if (tmpRes3) {
+//             queryCache.from = from 
+//         }
+//         tmpRes4 := searchSegment(nums,queryCache.to,to)
+//         if (tmpRes4) {
+//             queryCache.to = to 
+//         }
+//         if (tmpRes3 && tmpRes4) {
+//             resArr = append(resArr,true)
+//         } else {
+//             resArr = append(resArr,false)
+//         }
+        
+//     }
+//     return resArr
+// }
+
+// func searchSegment(nums []int, from, to int) bool {
+//     res := true
+//     to_half := from + (to - from)/2 + 1
+//     from_mid := to_half
+//     for i := from; i < to_half; i++ {
+//         if (nums[i]%2 == 0) { 
+//             res = (nums[i+1]%2 != 0) 
+//         } else { 
+//             res = (nums[i+1]%2 == 0) 
+//         }
+        
+//         if (!res) { 
+//             break 
+//         }
+
+//         if (from_mid == to) { 
+//             continue 
+//         }
+
+//         if (nums[from_mid]%2 == 0) { 
+//             res = (nums[from_mid+1]%2 != 0) 
+//         } else { 
+//             res = (nums[from_mid+1]%2 == 0) 
+//         }
+
+//         if (!res) { 
+//             break 
+//         }
+//         from_mid++
+//     }
+//     return res
+// }
+
+// Attempt 2: Failed 1 test case
+// Find all the special ranges first
+// Cache Only -> Ceiling O(n)
+// func isArraySpecial(nums []int, queries [][]int) []bool {
+//     resArr := []bool{}
+//     specialQueries := []int{}
+//     var res bool;
+//     // base case is always true
+//     if (len(nums) == 1) {
+//         specialQueries = append(specialQueries,0)
+//     }
+//     for i := 0; i < len(nums)-1; i++ {
+//         if (nums[i]%2 == 0) { 
+//             res = (nums[i+1]%2 != 0) 
+//         } else { 
+//             res = (nums[i+1]%2 == 0) 
+//         }
+//         if !res {
+//             specialQueries = append(specialQueries,i)
+//         }
+//     }
+//     if res {
+//         specialQueries = append(specialQueries,len(nums)-1)
+//     }
+//     fmt.Println(specialQueries)
+//     for _,query := range queries {
+//         // base case is always true
+//         if (query[1] - query[0] == 0) {
+//             resArr = append(resArr,true)
+//             continue
+//         }
+//         found := false
+//         from := 0
+//         for i := 0; i < len(specialQueries); i++ {
+//             to := specialQueries[i]
+//             if (query[0] >= from && query[1] <= to) {
+//                 resArr = append(resArr,true)
+//                 found = true
+//                 break
+//             }
+//             from = specialQueries[i] + 1
+//         }
+//         if !found {
+//             resArr = append(resArr,false)
+//         }
+//     }
+//     return resArr
+// }   
+
+// Attempt 3: Pass All
+// Find all the special ranges first
+// Store cache IN an array so retrieval is O(1)
+// Cache Only -> Ceiling O(n)
+// func isArraySpecial(nums []int, queries [][]int) []bool {
+//     resArr := []bool{}
+//     specialQueries := make([]int,len(nums))
+//     var res bool;
+//     specialFrom := 0
+//     // base case is always true
+//     specialQueries[0] = 0
+//     for i := 0; i < len(nums)-1; i++ {
+//         if (nums[i]%2 == 0) { 
+//             res = (nums[i+1]%2 != 0) 
+//         } else { 
+//             res = (nums[i+1]%2 == 0) 
+//         }
+//         if res {
+//             specialQueries[i+1] = specialFrom
+//         } else {
+//             specialFrom = i + 1
+//             specialQueries[i+1] = specialFrom
+//         }
+//     }
+//     for _,query := range queries {
+//         // base case is always true
+//         if (query[1] - query[0] == 0) {
+//             resArr = append(resArr,true)
+//             continue
+//         }
+//         if (specialQueries[query[1]] <= query[0]) {
+//             resArr = append(resArr,true)
+//         } else {
+//             resArr = append(resArr,false)
+//         }
+//     }
+//     return resArr
+// }   
+
+// Attempt 4:
+// Model Answer
+func isArraySpecial(nums []int, queries [][]int) []bool {
+    n := len(nums)
+    a := make([]int, n)
+    x := 0
+    for i := 1; i < n; i++ {
+        if nums[i-1] % 2 == 0 && nums[i] % 2 == 0 || nums[i-1] % 2 != 0 && nums[i] % 2 != 0 {
+            x++
+        }
+        a[i] = x
+    }
+
+    res := make([]bool, len(queries))
+    for i, q := range queries {
+        if a[q[0]] == a[q[1]] {
+            res[i] = true
+        }
+    }
+    return res
+
+}
